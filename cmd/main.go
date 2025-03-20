@@ -2,8 +2,7 @@ package main
 
 import (
 	"context"
-	"fmt"
-	"gRPC/internal/api"
+	gRPCServer "gRPC/gRPC"
 	"gRPC/internal/config"
 	"gRPC/internal/repo"
 	"gRPC/internal/service"
@@ -43,13 +42,17 @@ func main() {
 
 	serviceInstance := service.NewService(repository, logger)
 
-	fmt.Println(serviceInstance) // TODO: изменить заглушку на инициализацию роутера
+	listener, err := net.Listen("tcp", cfg.GRPC.ListenAddress)
 
-	api.New(&api.Server{Service: serviceInstance})
+	if err != nil {
+		log.Fatal(errors.Wrap(err, "failed listening tcp port"))
+	}
+
+	service := gRPCServer.New(&gRPCServer.Server{Service: serviceInstance})
 
 	go func() {
 		logger.Infof("Starting server on %s", cfg.GRPC.ListenAddress)
-		if _, err := net.Listen("tcp", cfg.GRPC.ListenAddress); err != nil {
+		if err := service.Serve(listener); err != nil {
 			log.Fatal(errors.Wrap(err, "failed to start server"))
 		}
 
