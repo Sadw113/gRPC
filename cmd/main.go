@@ -3,10 +3,15 @@ package main
 import (
 	"context"
 	"fmt"
+	"gRPC/internal/api"
 	"gRPC/internal/config"
 	"gRPC/internal/repo"
 	"gRPC/internal/service"
 	"log"
+	"net"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
@@ -39,4 +44,21 @@ func main() {
 	serviceInstance := service.NewService(repository, logger)
 
 	fmt.Println(serviceInstance) // TODO: изменить заглушку на инициализацию роутера
+
+	api.New(&api.Server{Service: serviceInstance})
+
+	go func() {
+		logger.Infof("Starting server on %s", cfg.GRPC.ListenAddress)
+		if _, err := net.Listen("tcp", cfg.GRPC.ListenAddress); err != nil {
+			log.Fatal(errors.Wrap(err, "failed to start server"))
+		}
+
+	}()
+
+	// Ожидание системных сигналов для корректного завершения работы
+	signalChan := make(chan os.Signal, 1)
+	signal.Notify(signalChan, os.Interrupt, syscall.SIGTERM)
+	<-signalChan
+
+	logger.Info("Shutting down gracefully...")
 }
