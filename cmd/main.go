@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	gRPCServer "gRPC/gRPC"
+	sso "gRPC/gRPC/proto"
 	"gRPC/internal/config"
 	"gRPC/internal/repo"
 	"gRPC/internal/service"
@@ -15,6 +15,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/pkg/errors"
+	"google.golang.org/grpc"
 
 	customLogger "gRPC/pkg/logger"
 )
@@ -42,17 +43,21 @@ func main() {
 
 	serviceInstance := service.NewService(repository, logger)
 
-	listener, err := net.Listen("tcp", cfg.GRPC.ListenAddress)
+	lis, err := net.Listen("tcp", cfg.GRPC.ListenAddress)
 
 	if err != nil {
 		log.Fatal(errors.Wrap(err, "failed listening tcp port"))
 	}
 
-	service := gRPCServer.New(&gRPCServer.Server{Service: serviceInstance})
+	gPRCServer := grpc.NewServer()
+
+	sso.RegisterAuthServiceServer(gPRCServer, serviceInstance)
+
+	// service := gRPCServer.New(&gRPCServer.Server{Service: serviceInstance})
 
 	go func() {
 		logger.Infof("Starting server on %s", cfg.GRPC.ListenAddress)
-		if err := service.Serve(listener); err != nil {
+		if err := gPRCServer.Serve(lis); err != nil {
 			log.Fatal(errors.Wrap(err, "failed to start server"))
 		}
 

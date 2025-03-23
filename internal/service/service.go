@@ -12,15 +12,9 @@ import (
 
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
-	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
-
-type AuthService interface {
-	Register(ctx context.Context, req *sso.RegisterRequest) (*sso.RegisterResponse, error)
-	Login(ctx context.Context, req *sso.LoginRequest) (*sso.LoginResponse, error)
-}
 
 type authService struct {
 	sso.UnimplementedAuthServiceServer
@@ -28,15 +22,11 @@ type authService struct {
 	log  *zap.SugaredLogger
 }
 
-func NewService(repo repo.Repository, logger *zap.SugaredLogger) AuthService {
+func NewService(repo repo.Repository, logger *zap.SugaredLogger) sso.AuthServiceServer {
 	return &authService{
 		repo: repo,
 		log:  logger,
 	}
-}
-
-func Register(gPRC *grpc.Server) {
-	sso.RegisterAuthServiceServer(gPRC, &authService{})
 }
 
 func (s *authService) Register(ctx context.Context, req *sso.RegisterRequest) (*sso.RegisterResponse, error) {
@@ -53,19 +43,26 @@ func (s *authService) Register(ctx context.Context, req *sso.RegisterRequest) (*
 
 	req.Password, _ = secure.HashPassword(req.Password)
 
-	var user repo.User
+	user := repo.User{
+		Username:       req.GetUsername(),
+		HashedPassword: req.GetPassword(),
+	}
 
-	user.Username = req.Username
-	user.HashedPassword = req.Password
+	_, err = s.repo.Login(ctx, user.Username)
+	if err == nil {
+		s.log.Error("Creating a new user failed: this user is exist", zap.Error(err))
+		return &sso.RegisterResponse{Message: "User is exist"}, errors.Wrap(err, "user is exist")
+	}
 
-	fmt.Println(user.Username, user.HashedPassword)
-
-	err = s.repo.CreateUser(ctx, &user)
+	id, err := s.repo.CreateUser(ctx, &user)
 	if err != nil {
+		s.log.Error("Creating a new user failed", zap.Error(err))
 		return nil, errors.Wrap(err, "failed to create user")
 	}
 
-	return &sso.RegisterResponse{Message: "Creating new user was successfull"}, nil
+	message := fmt.Sprintf("Creating a new user with id %d was successfull", id)
+
+	return &sso.RegisterResponse{Message: message}, nil
 }
 
 func (s *authService) Login(ctx context.Context, req *sso.LoginRequest) (*sso.LoginResponse, error) {

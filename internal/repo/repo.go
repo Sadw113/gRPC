@@ -13,7 +13,8 @@ import (
 const (
 	createUserQuery = `
 		INSERT INTO users (username, hashed_password, created_at, updated_at)
-		VALUES ($1, $2, NOW(), NOW());
+		VALUES ($1, $2, NOW(), NOW())
+		RETURNING id;
 	`
 
 	getUserByUsernameQuery = `
@@ -28,7 +29,7 @@ type repository struct {
 }
 
 type Repository interface {
-	CreateUser(ctx context.Context, user *User) error
+	CreateUser(ctx context.Context, user *User) (int, error)
 	Login(ctx context.Context, username string) (*User, error)
 }
 
@@ -66,12 +67,13 @@ func NewRepository(ctx context.Context, cfg config.PostgreSQL) (Repository, erro
 	return &repository{pool}, nil
 }
 
-func (r *repository) CreateUser(ctx context.Context, user *User) error {
-	_, err := r.pool.Exec(ctx, createUserQuery, user.Username, user.HashedPassword)
+func (r *repository) CreateUser(ctx context.Context, user *User) (int, error) {
+	var id int
+	err := r.pool.QueryRow(ctx, createUserQuery, user.Username, user.HashedPassword).Scan(&id)
 	if err != nil {
-		return errors.Wrap(err, "failed to insert user")
+		return 0, errors.Wrap(err, "failed to insert user")
 	}
-	return nil
+	return id, nil
 }
 
 func (r *repository) Login(ctx context.Context, username string) (*User, error) {
