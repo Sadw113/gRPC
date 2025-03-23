@@ -3,11 +3,11 @@ package service
 import (
 	"context"
 	"fmt"
+	sso "gRPC/gRPC/proto"
 	"gRPC/internal/repo"
 	"gRPC/pkg/jwt"
 	"gRPC/pkg/secure"
 	"gRPC/pkg/validator"
-	sso "gRPC/proto"
 	"strconv"
 
 	"github.com/pkg/errors"

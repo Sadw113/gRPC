@@ -16,7 +16,7 @@ import (
 	"github.com/kelseyhightower/envconfig"
 	"github.com/pkg/errors"
 
-	customLogger "gRPC/internal/logger"
+	customLogger "gRPC/pkg/logger"
 )
 
 func main() {
