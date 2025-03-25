@@ -30,7 +30,7 @@ type repository struct {
 
 type Repository interface {
 	CreateUser(ctx context.Context, user *User) (int, error)
-	Login(ctx context.Context, username string) (*User, error)
+	GetUser(ctx context.Context, username string) (*User, error)
 }
 
 func NewRepository(ctx context.Context, cfg config.PostgreSQL) (Repository, error) {
@@ -76,7 +76,7 @@ func (r *repository) CreateUser(ctx context.Context, user *User) (int, error) {
 	return id, nil
 }
 
-func (r *repository) Login(ctx context.Context, username string) (*User, error) {
+func (r *repository) GetUser(ctx context.Context, username string) (*User, error) {
 	var user User
 	err := r.pool.QueryRow(ctx, getUserByUsernameQuery, username).Scan(
 		&user.ID,

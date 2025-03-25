@@ -48,7 +48,7 @@ func (s *authService) Register(ctx context.Context, req *sso.RegisterRequest) (*
 		HashedPassword: req.GetPassword(),
 	}
 
-	_, err = s.repo.Login(ctx, user.Username)
+	_, err = s.repo.GetUser(ctx, user.Username)
 	if err == nil {
 		s.log.Error("Creating a new user failed: this user is exist", zap.Error(err))
 		return &sso.RegisterResponse{Message: "User is exist"}, errors.Wrap(err, "user is exist")
@@ -71,7 +71,7 @@ func (s *authService) Login(ctx context.Context, req *sso.LoginRequest) (*sso.Lo
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	user, err := s.repo.Login(ctx, req.GetUsername())
+	user, err := s.repo.GetUser(ctx, req.GetUsername())
 	if err != nil {
 		s.log.Errorf("failed to get credentials for user %s: %v", req.GetUsername(), err)
 		return nil, status.Error(codes.NotFound, "user not found")

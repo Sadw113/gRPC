@@ -9,11 +9,11 @@ import (
 func GenerateAccessToken(userID string) (string, error) {
 	payload := jwt.MapClaims{
 		"sub": userID,
-		"exp": time.Now().Add(time.Hour * 72).Unix(),
+		"exp": time.Now().Add(time.Minute * 30).Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, payload)
 
-	t, err := token.SignedString("dummyAccessTokenFor_")
+	t, err := token.SignedString([]byte("dummyAccessTokenFor_"))
 	if err != nil {
 		return "", err
 	}
@@ -28,7 +28,7 @@ func GenerateRefreshToken(userID string) (string, error) {
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, payload)
 
-	t, err := token.SignedString("dummyRefreshTokenFor_")
+	t, err := token.SignedString([]byte("dummyRefreshTokenFor_"))
 	if err != nil {
 		return "", err
 	}
