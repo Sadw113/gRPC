@@ -24,5 +24,6 @@ message LoginRequest {
 }
 
 message LoginResponse {
-    string token = 1;
+    string accesstoken = 1;
+    string refreshtoken = 2;
 }

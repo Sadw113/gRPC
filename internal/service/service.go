@@ -87,13 +87,13 @@ func (s *authService) Login(ctx context.Context, req *sso.LoginRequest) (*sso.Lo
 		s.log.Errorf("failed to generate access token for user %s: %v", req.GetUsername(), err)
 		return nil, errors.Wrap(err, "failed to generate token")
 	}
+	refreshToken, err := jwt.GenerateRefreshToken(strconv.FormatInt(user.ID, 10))
+	if err != nil {
+		s.log.Errorf("failed to generate refresh token for user %s: %v", req.GetUsername(), err)
+		return nil, errors.Wrap(err, "failed to generate token")
+	}
 
-	// TODO: refactor .proto to add the refresh token there
-	// refreshToken, err := jwt.GenerateRefreshToken(strconv.FormatInt(user.ID, 10))
-	// if err != nil {
-	// 	s.log.Errorf("failed to generate refresh token for user %s: %v", req.GetUsername(), err)
-	// 	return nil, errors.Wrap(err, "failed to generate token")
-	// }
-
-	return &sso.LoginResponse{Token: accessToken}, nil
+	return &sso.LoginResponse{
+		Accesstoken:  accessToken,
+		Refreshtoken: refreshToken}, nil
 }
