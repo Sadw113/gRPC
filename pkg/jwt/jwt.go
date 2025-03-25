@@ -6,14 +6,14 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func GenerateAccessToken(userID string) (string, error) {
+func GenerateAccessToken(userID string, accesSecret string) (string, error) {
 	payload := jwt.MapClaims{
 		"sub": userID,
 		"exp": time.Now().Add(time.Minute * 30).Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, payload)
 
-	t, err := token.SignedString([]byte("dummyAccessTokenFor_"))
+	t, err := token.SignedString([]byte(accesSecret))
 	if err != nil {
 		return "", err
 	}
@@ -21,14 +21,14 @@ func GenerateAccessToken(userID string) (string, error) {
 	return t, nil
 }
 
-func GenerateRefreshToken(userID string) (string, error) {
+func GenerateRefreshToken(userID string, refreshSecret string) (string, error) {
 	payload := jwt.MapClaims{
 		"sub": userID,
 		"exp": time.Now().Add(time.Hour * 72).Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, payload)
 
-	t, err := token.SignedString([]byte("dummyRefreshTokenFor_"))
+	t, err := token.SignedString([]byte(refreshSecret))
 	if err != nil {
 		return "", err
 	}

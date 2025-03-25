@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	sso "gRPC/gRPC/proto"
+	"gRPC/internal/config"
 	"gRPC/internal/repo"
 	"gRPC/pkg/jwt"
 	"gRPC/pkg/secure"
@@ -20,12 +21,14 @@ type authService struct {
 	sso.UnimplementedAuthServiceServer
 	repo repo.Repository
 	log  *zap.SugaredLogger
+	cfg  config.SecretKeys
 }
 
-func NewService(repo repo.Repository, logger *zap.SugaredLogger) sso.AuthServiceServer {
+func NewService(repo repo.Repository, logger *zap.SugaredLogger, cfg config.SecretKeys) sso.AuthServiceServer {
 	return &authService{
 		repo: repo,
 		log:  logger,
+		cfg:  cfg,
 	}
 }
 
@@ -82,12 +85,12 @@ func (s *authService) Login(ctx context.Context, req *sso.LoginRequest) (*sso.Lo
 		return nil, status.Error(codes.Unauthenticated, "invalid username or password")
 	}
 
-	accessToken, err := jwt.GenerateAccessToken(strconv.FormatInt(user.ID, 10))
+	accessToken, err := jwt.GenerateAccessToken(strconv.FormatInt(user.ID, 10), s.cfg.AccessSecret)
 	if err != nil {
 		s.log.Errorf("failed to generate access token for user %s: %v", req.GetUsername(), err)
 		return nil, errors.Wrap(err, "failed to generate token")
 	}
-	refreshToken, err := jwt.GenerateRefreshToken(strconv.FormatInt(user.ID, 10))
+	refreshToken, err := jwt.GenerateRefreshToken(strconv.FormatInt(user.ID, 10), s.cfg.RefreshSecret)
 	if err != nil {
 		s.log.Errorf("failed to generate refresh token for user %s: %v", req.GetUsername(), err)
 		return nil, errors.Wrap(err, "failed to generate token")

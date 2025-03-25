@@ -41,7 +41,7 @@ func main() {
 		log.Fatal(errors.Wrap(err, "failed to initialize repository"))
 	}
 
-	serviceInstance := service.NewService(repository, logger)
+	serviceInstance := service.NewService(repository, logger, cfg.SecretKeys)
 
 	lis, err := net.Listen("tcp", cfg.GRPC.ListenAddress)
 
@@ -52,8 +52,6 @@ func main() {
 	gPRCServer := grpc.NewServer()
 
 	sso.RegisterAuthServiceServer(gPRCServer, serviceInstance)
-
-	// service := gRPCServer.New(&gRPCServer.Server{Service: serviceInstance})
 
 	go func() {
 		logger.Infof("Starting server on %s", cfg.GRPC.ListenAddress)
