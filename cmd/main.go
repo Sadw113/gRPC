@@ -41,7 +41,7 @@ func main() {
 		log.Fatal(errors.Wrap(err, "failed to initialize repository"))
 	}
 
-	serviceInstance := service.NewService(repository, logger, cfg.SecretKeys)
+	serviceInstance := service.NewService(repository, logger, cfg)
 
 	lis, err := net.Listen("tcp", cfg.GRPC.ListenAddress)
 

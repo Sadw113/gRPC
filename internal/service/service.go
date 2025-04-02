@@ -110,7 +110,13 @@ func (s *authService) Login(ctx context.Context, req *sso.LoginRequest) (*sso.Lo
 }
 
 func (s *authService) UpdatePassword(ctx context.Context, req *sso.UpdatePasswordRequest) (*sso.UpdatePasswordResponse, error) {
-	remainingAttempts, err := s.checkRemainingAttempts(req.UserId)
+	user, err := s.repo.GetUser(ctx, req.GetUsername())
+	if err != nil {
+		s.log.Errorf("failed to get credentials for user %s: %v", req.GetUsername(), err)
+		return nil, status.Error(codes.NotFound, "user not found")
+	}
+
+	remainingAttempts, err := s.checkRemainingAttempts(user.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -120,7 +126,7 @@ func (s *authService) UpdatePassword(ctx context.Context, req *sso.UpdatePasswor
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	password, err := s.repo.GetPassword(ctx, req.GetUserId())
+	password, err := s.repo.GetPassword(ctx, req.GetUsername())
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get password")
 	}
@@ -128,7 +134,7 @@ func (s *authService) UpdatePassword(ctx context.Context, req *sso.UpdatePasswor
 	err = secure.CheckPassword(password, req.Password)
 
 	if req.Password != "" && err != nil {
-		s.numberPasswordEntries.Set(strconv.FormatInt(req.UserId, 10), remainingAttempts-1, cache.DefaultExpiration)
+		s.numberPasswordEntries.Set(strconv.FormatInt(user.ID, 10), remainingAttempts-1, cache.DefaultExpiration)
 
 		return nil, status.Errorf(
 			codes.InvalidArgument,
@@ -146,13 +152,13 @@ func (s *authService) UpdatePassword(ctx context.Context, req *sso.UpdatePasswor
 
 	req.NewPassword, _ = secure.HashPassword(req.NewPassword)
 
-	err = s.repo.UpdatePassword(ctx, req.NewPassword, req.GetUserId())
+	err = s.repo.UpdatePassword(ctx, req.NewPassword, req.GetUsername())
 
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed changing password")
 	}
 
-	s.numberPasswordEntries.Delete(strconv.FormatInt(req.UserId, 10))
+	s.numberPasswordEntries.Delete(strconv.FormatInt(user.ID, 10))
 
 	return &sso.UpdatePasswordResponse{Message: "The password change was successful"}, nil
 }

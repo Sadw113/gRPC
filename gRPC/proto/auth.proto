@@ -32,7 +32,7 @@ message LoginResponse {
 }
 
 message UpdatePasswordRequest {
-    int64 user_id = 1;
+    string username = 1;
     string password = 2;
     string new_password = 3;
 }

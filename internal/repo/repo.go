@@ -27,13 +27,13 @@ const (
 	getPasswordQuery = `
 		SELECT hashed_password
 		FROM users
-		WHERE id = $1;
+		WHERE username = $1;
 	`
 
 	updatePasswordQuery = `
 		UPDATE users 
 		SET hashed_password = $1
-		WHERE id = $2;
+		WHERE username = $2;
 	`
 )
 
@@ -44,8 +44,8 @@ type repository struct {
 type Repository interface {
 	CreateUser(ctx context.Context, user *User) (int, error)
 	GetUser(ctx context.Context, username string) (*User, error)
-	GetPassword(ctx context.Context, userID int64) (string, error)
-	UpdatePassword(ctx context.Context, newPassword string, userid int64) error
+	GetPassword(ctx context.Context, username string) (string, error)
+	UpdatePassword(ctx context.Context, newPassword string, username string) error
 }
 
 func NewRepository(ctx context.Context, cfg config.PostgreSQL) (Repository, error) {
@@ -106,10 +106,10 @@ func (r *repository) GetUser(ctx context.Context, username string) (*User, error
 	return &user, nil
 }
 
-func (r *repository) GetPassword(ctx context.Context, userID int64) (string, error) {
+func (r *repository) GetPassword(ctx context.Context, username string) (string, error) {
 	var password string
 
-	err := r.pool.QueryRow(ctx, getPasswordQuery, userID).Scan(&password)
+	err := r.pool.QueryRow(ctx, getPasswordQuery, username).Scan(&password)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -122,8 +122,8 @@ func (r *repository) GetPassword(ctx context.Context, userID int64) (string, err
 	return password, nil
 }
 
-func (r *repository) UpdatePassword(ctx context.Context, newPassword string, userid int64) error {
-	_, err := r.pool.Exec(ctx, updatePasswordQuery, newPassword, userid)
+func (r *repository) UpdatePassword(ctx context.Context, newPassword string, username string) error {
+	_, err := r.pool.Exec(ctx, updatePasswordQuery, newPassword, username)
 	if err != nil {
 		return err
 	}
