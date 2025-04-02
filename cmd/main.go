@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	sso "gRPC/gRPC/proto"
+	sso "gRPC/gRPC/genGo"
 	"gRPC/internal/config"
 	"gRPC/internal/repo"
 	"gRPC/internal/service"

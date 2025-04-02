@@ -4,9 +4,12 @@ package auth;
 
 option go_package = "./";
 
+import "google/protobuf/timestamp.proto";
+
 service AuthService {
     rpc Register (RegisterRequest) returns (RegisterResponse);
     rpc Login (LoginRequest) returns (LoginResponse);
+    rpc UpdatePassword(UpdatePasswordRequest) returns (UpdatePasswordResponse);
 }
 
 message RegisterRequest {
@@ -26,4 +29,18 @@ message LoginRequest {
 message LoginResponse {
     string accesstoken = 1;
     string refreshtoken = 2;
+}
+
+message UpdatePasswordRequest {
+    int64 user_id = 1;
+    string password = 2;
+    string new_password = 3;
+}
+
+message UpdatePasswordResponse {
+    string message = 1;
+}
+
+message Err {
+    google.protobuf.Timestamp expiration_time = 1;
 }

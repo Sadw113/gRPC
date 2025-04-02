@@ -1,4 +1,4 @@
 # gRPC
-Simple gRPC sso service
+Simple gRPC auth service
 
-protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative grpc/proto/sso.proto
+protoc --go_out=grpc/genGo  --go-grpc_out=grpc/genGo  grpc/proto/auth.proto

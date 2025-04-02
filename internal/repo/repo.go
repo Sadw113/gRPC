@@ -2,6 +2,7 @@ package repo
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"gRPC/internal/config"
 
@@ -22,6 +23,18 @@ const (
 		FROM users
 		WHERE username = $1;
 	`
+
+	getPasswordQuery = `
+		SELECT hashed_password
+		FROM users
+		WHERE id = $1;
+	`
+
+	updatePasswordQuery = `
+		UPDATE users 
+		SET hashed_password = $1
+		WHERE id = $2;
+	`
 )
 
 type repository struct {
@@ -31,6 +44,8 @@ type repository struct {
 type Repository interface {
 	CreateUser(ctx context.Context, user *User) (int, error)
 	GetUser(ctx context.Context, username string) (*User, error)
+	GetPassword(ctx context.Context, userID int64) (string, error)
+	UpdatePassword(ctx context.Context, newPassword string, userid int64) error
 }
 
 func NewRepository(ctx context.Context, cfg config.PostgreSQL) (Repository, error) {
@@ -89,4 +104,29 @@ func (r *repository) GetUser(ctx context.Context, username string) (*User, error
 		return nil, errors.Wrap(err, "failed to get user credentials")
 	}
 	return &user, nil
+}
+
+func (r *repository) GetPassword(ctx context.Context, userID int64) (string, error) {
+	var password string
+
+	err := r.pool.QueryRow(ctx, getPasswordQuery, userID).Scan(&password)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return "", errors.New("User not exist")
+		}
+
+		return "", err
+	}
+
+	return password, nil
+}
+
+func (r *repository) UpdatePassword(ctx context.Context, newPassword string, userid int64) error {
+	_, err := r.pool.Exec(ctx, updatePasswordQuery, newPassword, userid)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

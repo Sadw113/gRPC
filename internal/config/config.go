@@ -9,6 +9,7 @@ type AppConfig struct {
 	GRPC       gRPC
 	PostgreSQL PostgreSQL
 	SecretKeys SecretKeys
+	System     System
 }
 
 type gRPC struct {
@@ -31,4 +32,11 @@ type PostgreSQL struct {
 type SecretKeys struct {
 	AccessSecret  string `envconfig:"Access_Secret" required:"true"`
 	RefreshSecret string `envconfig:"Refresh_Secret" required:"true"`
+}
+
+type System struct {
+	NumberPasswordAttempts int64         `envconfig:"NUMBER_PASSWORD_ATTEMPTS" default:"5"`
+	LockPasswordEntry      time.Duration `envconfig:"LOCK_PASSWORD_ENTRY" default:"5m"`
+	AccessTokenTimeout     time.Duration `envconfig:"ACCESS_TOKEN_TIMEOUT" default:"15m"`
+	RefreshTokenTimeout    time.Duration `envconfig:"REFRESH_TOKEN_TIMEOUT" default:"15m"`
 }
