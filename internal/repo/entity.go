@@ -9,3 +9,14 @@ type User struct {
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 }
+
+type User_Tokens struct {
+	User_ID      int64
+	AccessToken  string
+	RefreshToken string
+}
+
+type NewRefreshTokenParams struct {
+	UserID int64
+	Token  string
+}

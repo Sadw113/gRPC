@@ -17,6 +17,7 @@ import (
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 
+	"gRPC/pkg/jwt"
 	customLogger "gRPC/pkg/logger"
 )
 
@@ -41,7 +42,18 @@ func main() {
 		log.Fatal(errors.Wrap(err, "failed to initialize repository"))
 	}
 
-	serviceInstance := service.NewService(repository, logger, cfg)
+	privateKey, err := jwt.ReadPrivateKey()
+	if err != nil {
+		log.Fatal("failed to read private key")
+	}
+	publicKey, err := jwt.ReadPublicKey()
+	if err != nil {
+		log.Fatal("failed to read public key")
+	}
+
+	jwt := jwt.NewJWTClient(privateKey, publicKey, cfg.System.AccessTokenTimeout, cfg.System.RefreshTokenTimeout)
+
+	serviceInstance := service.NewService(repository, logger, cfg, jwt)
 
 	lis, err := net.Listen("tcp", cfg.GRPC.ListenAddress)
 

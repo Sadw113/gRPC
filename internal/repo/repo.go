@@ -24,6 +24,12 @@ const (
 		WHERE username = $1;
 	`
 
+	createTokensQuery = `
+		INSERT INTO users_tokens (user_id, access_token, refresh_token)
+		VALUES ($1, $2, $3)
+		RETURNING id;
+	`
+
 	getPasswordQuery = `
 		SELECT hashed_password
 		FROM users
@@ -35,6 +41,23 @@ const (
 		SET hashed_password = $1
 		WHERE username = $2;
 	`
+
+	getRefreshTokenQuery = `
+		SELECT refresh_token
+		FROM users_tokens
+		WHERE user_id = $1;
+	`
+
+	updateRefreshTokenQuery = `
+		UPDATE users_tokens
+		SET refresh_token = $1
+		WHERE user_id = $2;
+	`
+
+	deleteRefreshTokenQuery = `
+		DELETE FROM users_tokens
+		WHERE user_id = $1;
+	`
 )
 
 type repository struct {
@@ -44,8 +67,12 @@ type repository struct {
 type Repository interface {
 	CreateUser(ctx context.Context, user *User) (int, error)
 	GetUser(ctx context.Context, username string) (*User, error)
+	CreateTokens(ctx context.Context, users_tokens *User_Tokens) (int, error)
 	GetPassword(ctx context.Context, username string) (string, error)
 	UpdatePassword(ctx context.Context, newPassword string, username string) error
+	GetRefreshToken(ctx context.Context, user_id int64) (string, error)
+	NewRefreshToken(ctx context.Context, params NewRefreshTokenParams) error
+	DeleteRefreshToken(ctx context.Context, user_id int64) error
 }
 
 func NewRepository(ctx context.Context, cfg config.PostgreSQL) (Repository, error) {
@@ -115,10 +142,8 @@ func (r *repository) GetPassword(ctx context.Context, username string) (string, 
 		if err == sql.ErrNoRows {
 			return "", errors.New("User not exist")
 		}
-
 		return "", err
 	}
-
 	return password, nil
 }
 
@@ -128,5 +153,42 @@ func (r *repository) UpdatePassword(ctx context.Context, newPassword string, use
 		return err
 	}
 
+	return nil
+}
+
+func (r *repository) CreateTokens(ctx context.Context, users_tokens *User_Tokens) (int, error) {
+	var id int
+	err := r.pool.QueryRow(ctx, createTokensQuery, users_tokens.User_ID, users_tokens.AccessToken, users_tokens.RefreshToken).Scan(&id)
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to insert user_tokens")
+	}
+	return id, nil
+}
+
+func (r *repository) GetRefreshToken(ctx context.Context, user_id int64) (string, error) {
+	var refreshToken string
+	err := r.pool.QueryRow(ctx, getRefreshTokenQuery, user_id).Scan(&refreshToken)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return "", errors.New("User not exist")
+		}
+		return "", err
+	}
+	return refreshToken, nil
+}
+
+func (r *repository) NewRefreshToken(ctx context.Context, params NewRefreshTokenParams) error {
+	_, err := r.pool.Exec(ctx, updateRefreshTokenQuery, params.Token, params.UserID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *repository) DeleteRefreshToken(ctx context.Context, user_id int64) error {
+	_, err := r.pool.Exec(ctx, deleteRefreshTokenQuery, user_id)
+	if err != nil {
+		return err
+	}
 	return nil
 }

@@ -10,6 +10,10 @@ service AuthService {
     rpc Register (RegisterRequest) returns (RegisterResponse);
     rpc Login (LoginRequest) returns (LoginResponse);
     rpc UpdatePassword(UpdatePasswordRequest) returns (UpdatePasswordResponse);
+    rpc Validate(ValidateRequest) returns (ValidateResponse);
+    rpc NewJwt(NewJwtRequest) returns (NewJwtResponse);
+    rpc RevokeJwt(RevokeJwtRequest) returns (RevokeJwtResponse);
+    rpc Refresh(RefreshRequest) returns (RefreshResponse);
 }
 
 message RegisterRequest {
@@ -43,4 +47,37 @@ message UpdatePasswordResponse {
 
 message Err {
     google.protobuf.Timestamp expiration_time = 1;
+}
+
+message ValidateRequest {
+    string access_token = 1;
+}
+
+message ValidateResponse {
+    int64 user_id = 1;
+}
+
+message NewJwtRequest {
+    int64 user_id = 1;
+}
+
+message NewJwtResponse {
+    string access_token = 1;
+    string refresh_token = 2;
+}
+
+message RevokeJwtRequest {
+    int64 user_id = 1;
+}
+
+message RevokeJwtResponse {}
+
+message RefreshRequest{
+    string access_token = 1;
+    string refresh_token = 2;
+}
+
+message RefreshResponse {
+    string access_token = 1;
+    string refresh_token = 2;
 }
