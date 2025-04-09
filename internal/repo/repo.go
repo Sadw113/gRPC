@@ -39,7 +39,8 @@ const (
 	updatePasswordQuery = `
 		UPDATE users 
 		SET hashed_password = $1
-		WHERE username = $2;
+		WHERE username = $2
+		RETURNING id;
 	`
 
 	getRefreshTokenQuery = `
@@ -51,12 +52,14 @@ const (
 	updateRefreshTokenQuery = `
 		UPDATE users_tokens
 		SET refresh_token = $1
-		WHERE user_id = $2;
+		WHERE user_id = $2
+		RETURNING user_id;
 	`
 
 	deleteRefreshTokenQuery = `
 		DELETE FROM users_tokens
-		WHERE user_id = $1;
+		WHERE user_id = $1
+		RETURNING user_id;
 	`
 )
 
@@ -148,7 +151,8 @@ func (r *repository) GetPassword(ctx context.Context, username string) (string, 
 }
 
 func (r *repository) UpdatePassword(ctx context.Context, data UpdatePasswordData) error {
-	_, err := r.pool.Exec(ctx, updatePasswordQuery, data.NewPassword, data.Username)
+	var id int
+	err := r.pool.QueryRow(ctx, updatePasswordQuery, data.NewPassword, data.Username).Scan(&id)
 	if err != nil {
 		return err
 	}
@@ -178,7 +182,8 @@ func (r *repository) GetRefreshToken(ctx context.Context, user_id int64) (string
 }
 
 func (r *repository) NewRefreshToken(ctx context.Context, params NewRefreshTokenParams) error {
-	_, err := r.pool.Exec(ctx, updateRefreshTokenQuery, params.Token, params.UserID)
+	var id int
+	err := r.pool.QueryRow(ctx, updateRefreshTokenQuery, params.Token, params.UserID).Scan(&id)
 	if err != nil {
 		return err
 	}
@@ -186,7 +191,8 @@ func (r *repository) NewRefreshToken(ctx context.Context, params NewRefreshToken
 }
 
 func (r *repository) DeleteRefreshToken(ctx context.Context, user_id int64) error {
-	_, err := r.pool.Exec(ctx, deleteRefreshTokenQuery, user_id)
+	var id int
+	err := r.pool.QueryRow(ctx, deleteRefreshTokenQuery, user_id).Scan(&id)
 	if err != nil {
 		return err
 	}
