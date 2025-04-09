@@ -74,7 +74,6 @@ func (a *jwtClient) ValidateToken(params *ValidateTokenParams) (bool, error) {
 }
 
 func (a *jwtClient) GetDataFromToken(params *GetDataFromTokenParams) (*GetDataFromTokenResponse, error) {
-
 	token, err := jwt.Parse(params.Token, func(token *jwt.Token) (interface{}, error) {
 		return a.publicKey, nil
 	})

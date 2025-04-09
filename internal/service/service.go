@@ -160,7 +160,12 @@ func (s *authService) UpdatePassword(ctx context.Context, req *sso.UpdatePasswor
 
 	req.NewPassword, _ = secure.HashPassword(req.NewPassword)
 
-	err = s.repo.UpdatePassword(ctx, req.NewPassword, req.GetUsername())
+	updateData := repo.UpdatePasswordData{
+		Username:    req.GetUsername(),
+		NewPassword: req.NewPassword,
+	}
+
+	err = s.repo.UpdatePassword(ctx, updateData)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed changing password")

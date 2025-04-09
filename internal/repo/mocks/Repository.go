@@ -14,6 +14,34 @@ type Repository struct {
 	mock.Mock
 }
 
+// CreateTokens provides a mock function with given fields: ctx, users_tokens
+func (_m *Repository) CreateTokens(ctx context.Context, users_tokens *repo.User_Tokens) (int, error) {
+	ret := _m.Called(ctx, users_tokens)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateTokens")
+	}
+
+	var r0 int
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *repo.User_Tokens) (int, error)); ok {
+		return rf(ctx, users_tokens)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *repo.User_Tokens) int); ok {
+		r0 = rf(ctx, users_tokens)
+	} else {
+		r0 = ret.Get(0).(int)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *repo.User_Tokens) error); ok {
+		r1 = rf(ctx, users_tokens)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // CreateUser provides a mock function with given fields: ctx, user
 func (_m *Repository) CreateUser(ctx context.Context, user *repo.User) (int, error) {
 	ret := _m.Called(ctx, user)
@@ -42,6 +70,24 @@ func (_m *Repository) CreateUser(ctx context.Context, user *repo.User) (int, err
 	return r0, r1
 }
 
+// DeleteRefreshToken provides a mock function with given fields: ctx, user_id
+func (_m *Repository) DeleteRefreshToken(ctx context.Context, user_id int64) error {
+	ret := _m.Called(ctx, user_id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteRefreshToken")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, int64) error); ok {
+		r0 = rf(ctx, user_id)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // GetPassword provides a mock function with given fields: ctx, username
 func (_m *Repository) GetPassword(ctx context.Context, username string) (string, error) {
 	ret := _m.Called(ctx, username)
@@ -63,6 +109,34 @@ func (_m *Repository) GetPassword(ctx context.Context, username string) (string,
 
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
 		r1 = rf(ctx, username)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetRefreshToken provides a mock function with given fields: ctx, user_id
+func (_m *Repository) GetRefreshToken(ctx context.Context, user_id int64) (string, error) {
+	ret := _m.Called(ctx, user_id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetRefreshToken")
+	}
+
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, int64) (string, error)); ok {
+		return rf(ctx, user_id)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, int64) string); ok {
+		r0 = rf(ctx, user_id)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, int64) error); ok {
+		r1 = rf(ctx, user_id)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -100,17 +174,35 @@ func (_m *Repository) GetUser(ctx context.Context, username string) (*repo.User,
 	return r0, r1
 }
 
-// UpdatePassword provides a mock function with given fields: ctx, newPassword, username
-func (_m *Repository) UpdatePassword(ctx context.Context, newPassword string, username string) error {
-	ret := _m.Called(ctx, newPassword, username)
+// NewRefreshToken provides a mock function with given fields: ctx, params
+func (_m *Repository) NewRefreshToken(ctx context.Context, params repo.NewRefreshTokenParams) error {
+	ret := _m.Called(ctx, params)
+
+	if len(ret) == 0 {
+		panic("no return value specified for NewRefreshToken")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, repo.NewRefreshTokenParams) error); ok {
+		r0 = rf(ctx, params)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// UpdatePassword provides a mock function with given fields: ctx, data
+func (_m *Repository) UpdatePassword(ctx context.Context, data repo.UpdatePasswordData) error {
+	ret := _m.Called(ctx, data)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UpdatePassword")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
-		r0 = rf(ctx, newPassword, username)
+	if rf, ok := ret.Get(0).(func(context.Context, repo.UpdatePasswordData) error); ok {
+		r0 = rf(ctx, data)
 	} else {
 		r0 = ret.Error(0)
 	}

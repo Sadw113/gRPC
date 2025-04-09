@@ -69,7 +69,7 @@ type Repository interface {
 	GetUser(ctx context.Context, username string) (*User, error)
 	CreateTokens(ctx context.Context, users_tokens *User_Tokens) (int, error)
 	GetPassword(ctx context.Context, username string) (string, error)
-	UpdatePassword(ctx context.Context, newPassword string, username string) error
+	UpdatePassword(ctx context.Context, data UpdatePasswordData) error
 	GetRefreshToken(ctx context.Context, user_id int64) (string, error)
 	NewRefreshToken(ctx context.Context, params NewRefreshTokenParams) error
 	DeleteRefreshToken(ctx context.Context, user_id int64) error
@@ -147,8 +147,8 @@ func (r *repository) GetPassword(ctx context.Context, username string) (string, 
 	return password, nil
 }
 
-func (r *repository) UpdatePassword(ctx context.Context, newPassword string, username string) error {
-	_, err := r.pool.Exec(ctx, updatePasswordQuery, newPassword, username)
+func (r *repository) UpdatePassword(ctx context.Context, data UpdatePasswordData) error {
+	_, err := r.pool.Exec(ctx, updatePasswordQuery, data.NewPassword, data.Username)
 	if err != nil {
 		return err
 	}

@@ -20,3 +20,8 @@ type NewRefreshTokenParams struct {
 	UserID int64
 	Token  string
 }
+
+type UpdatePasswordData struct {
+	Username    string
+	NewPassword string
+}
